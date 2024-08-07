@@ -84,14 +84,6 @@ const verifyCloudflare = async (request, response) => {
       message: `The provided Turnstile token was not valid!`,
       data: outcome,
     })
-    // let response = new Response(
-    //   "The provided Turnstile token was not valid! \n" +
-    //     JSON.stringify(outcome),
-    //   {
-    //     status: 403,
-    //     statusText: "failed",
-    //   }
-    // );
     
   }
   // The Turnstile token was successfuly validated. Proceed with your application logic.
@@ -106,7 +98,8 @@ const verifyCloudflare = async (request, response) => {
   // );
 }
 
-app.get("/", (req, res) => {  
+app.get("/", (req, res) => {
+  console.log("🚀 ~ app.get ~ req:")
   res.setHeader("Content-Type", "text/html")
   res.sendFile(path.join(__dirname, 'public', 'explicit.html'))
 })

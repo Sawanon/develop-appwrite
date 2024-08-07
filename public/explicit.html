@@ -23,18 +23,22 @@
     <style>
       html,
       body {
-        height: 100%;
+        padding: 0;
+        margin: 0;
       }
 
       body {
         display: flex;
-        align-items: center;
-        padding-top: 40px;
-        padding-bottom: 40px;
+        /* padding-top: 40px;
+        padding-bottom: 40px; */
         background-color: #fefefe;
+        /* background-color: #b54f4f; */
+        justify-content: center;
+        transform-origin: top;
+        transform: scale(2.8);
       }
 
-      .form-signin {
+      /* .form-signin {
         width: 100%;
         max-width: 330px;
         padding: 15px;
@@ -59,17 +63,17 @@
         margin-bottom: 10px;
         border-top-left-radius: 0;
         border-top-right-radius: 0;
-      }
+      } */
     </style>
   </head>
   <body>
-    <main class="form-signin">
+    <!-- <main class="form-signin"> -->
         <div class="checkbox mb-3">
           <!-- The Turnstile widget will be injected in the following div. -->
           <div id="myWidget"></div>
           <!-- end. -->
         </div>
-    </main>
+    <!-- </main> -->
     <script>
       // This function is called when the Turnstile script is loaded and ready to be used.
       // The function name matches the "onload=..." parameter.
@@ -86,7 +90,7 @@
         console.debug("_turnstileCb called");
 
         turnstile.render("#myWidget", {
-          sitekey: "0x4AAAAAAAghWrGTU63nLxU_",
+          sitekey: "0x4AAAAAAAgsgavzS2banKFG",
           //   sitekey: '3x00000000000000000000FF',
           theme: "light",
           action: "signin",
