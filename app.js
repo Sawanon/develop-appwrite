@@ -99,7 +99,8 @@ const verifyCloudflare = async (request, response) => {
 }
 
 app.get("/", (req, res) => {
-  console.log("🚀 ~ app.get ~ req:")
+  console.log("🚀 ~ app.get ~ req:", req.headers)
+  // maybe block other x-requested-with: 'com.example.lottery_ck' - sawanon:20240808
   res.setHeader("Content-Type", "text/html")
   res.sendFile(path.join(__dirname, 'public', 'explicit.html'))
 })
