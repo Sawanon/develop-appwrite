@@ -17,8 +17,8 @@ const databaseName = env.DATABASE_NAME;
 const SECRET_KEY = env.SECRET_KEY;
 
 const client = new Client()
-  .setEndpoint("https://baas.moevedigital.com/v1")
-  .setProject("667afb24000fbd66b4df")
+  .setEndpoint(env.APPWRITE_URL)
+  .setProject(env.PROJECT_ID)
   .setKey(env.API_KEY_NAJA);
 
 const checkExistUser = async (phone) => {
@@ -150,6 +150,29 @@ app.post("/sign-in", async (req, res) => {
     
     // userId: userId || null,
     res.json(token)
+})
+
+app.post("/createPasscode", async (req, res) => {
+  try {
+    const body = req.body
+    // const sessionId = req.headers['x-api-key']
+    // console.log("🚀 ~ app.post ~ sessionId:", sessionId)
+    const databases = new Databases(client)
+    const { passcode, userId } = body
+    console.log("🚀 ~ app.post ~ passcode:", passcode)
+    console.log("🚀 ~ app.post ~ userId:", userId)
+    const result = await databases.updateDocument(databaseName, 'user', userId,  {
+      "passcode": passcode,
+    })
+    console.log("🚀 ~ app.post ~ result:", result)
+    
+    res.send("ok")
+    
+  } catch (error) {
+    console.log("🚀 ~ app.post ~ error:", error)
+    
+    res.send("error")
+  }
 })
 
 app.listen(port, () => {
