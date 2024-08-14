@@ -175,6 +175,11 @@ app.post("/createPasscode", async (req, res) => {
   }
 })
 
+app.get("/currentTime", (req, res) => {
+  res.setHeader("dateISO", (new Date).toISOString())
+  res.send(null)
+})
+
 app.listen(port, () => {
     console.log(`listen on port ${port}`);
     

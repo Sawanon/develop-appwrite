@@ -33,37 +33,11 @@
         padding-bottom: 40px; */
         background-color: #fefefe;
         /* background-color: #b54f4f; */
+        /* background-color: rgb(50, 124, 86); */
         justify-content: center;
         transform-origin: top;
         transform: scale(2.8);
       }
-
-      /* .form-signin {
-        width: 100%;
-        max-width: 330px;
-        padding: 15px;
-        margin: auto;
-      }
-
-      .form-signin .checkbox {
-        font-weight: 400;
-      }
-
-      .form-signin .form-floating:focus-within {
-        z-index: 2;
-      }
-
-      .form-signin input[type="text"] {
-        margin-bottom: -1px;
-        border-bottom-right-radius: 0;
-        border-bottom-left-radius: 0;
-      }
-
-      .form-signin input[type="password"] {
-        margin-bottom: 10px;
-        border-top-left-radius: 0;
-        border-top-right-radius: 0;
-      } */
     </style>
   </head>
   <body>
@@ -97,8 +71,6 @@
           callback: (token) => {
             // get token this - sawanon:20240805
             sendMessageToFlutter(token);
-            const button = document.getElementById("fucking-hacker");
-            button.disabled = false;
           },
           //   "before-interactive-callback": (e) => {
           //     console.log("e", e);
