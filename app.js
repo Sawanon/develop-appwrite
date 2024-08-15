@@ -176,7 +176,9 @@ app.post("/createPasscode", async (req, res) => {
 })
 
 app.get("/currentTime", (req, res) => {
-  res.setHeader("dateISO", (new Date).toISOString())
+  const now = new Date
+  // now.setHours(0, 0, 0, 0)
+  res.setHeader("dateISO", now.toISOString())
   res.send(null)
 })
 
