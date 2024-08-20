@@ -3,5 +3,10 @@ services:
   ck-backend:
     env_file:
       - .env
+    image: ck-backend
+    pull_policy: build
+    build:
+      dockerfile: ./Dockerfile
+      no_cache: true
     ports:
-      - 111200:3000
+      - 1112:3000
