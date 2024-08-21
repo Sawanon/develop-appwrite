@@ -182,6 +182,15 @@ app.get("/currentTime", (req, res) => {
   res.send(null)
 })
 
+app.get("/payment", (req, res) => {
+  // TODO: invoice update to paid
+  console.log("in payment !", (new Date).toISOString());
+  
+  res.send({
+    message: 'test'
+  })
+})
+
 app.listen(port, () => {
     console.log(`listen on port ${port}`);
     

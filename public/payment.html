@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      #confirm {
+        background: rgb(46, 150, 115);
+        cursor: pointer;
+        font-weight: 700;
+        color: white;
+        border-radius: 8px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100px;
+        height: 48px;
+      }
+      #confirm:hover {
+        background: rgb(60, 232, 177);
+        color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <form id="maform" action="" method="post">
+        
+        <input style="width: 100px; height: 48px; font-size: 24px;" type="submit" value="pay !">
+    </form> -->
+    <main
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: absolute;
+        inset: 0;
+      "
+    >
+      <div id="confirm">Pay !</div>
+      <a style="display: none;"></a>
+    </main>
+    <script>
+        const fetchAPI = async () => {
+            let url = "http://127.0.0.1:3009/confirm";
+        const id = location.search.substring(4);
+        url = `${url}${location.search}`;
+            const backurl = await fetch(url)
+            const data = await backurl.json()
+            console.log("🚀 ~ fetchAPI ~ backurl:", data)
+        }
+      const setup = () => {
+        const button = document.getElementById("confirm")
+        button.addEventListener("click", fetchAPI)
+      };
+      setup();
+    </script>
+  </body>
+</html>
