@@ -1,10 +1,11 @@
-import express from "express";
-import cors from "cors";
+import {Router} from "express";
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-const env = process.env;
-const app = express();
-const port = env.PORT || 3009;
-
+const currentUrl = "https://3fa9-110-170-209-198.ngrok-free.app"
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const router = Router()
 const username = "sawanon";
 const password = "123456";
 const exprire = 599;
@@ -28,12 +29,9 @@ const checkBearerToken = (req) => {
   }
 };
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-app.get("/", (req, res) => {
-  res.send("bank");
+router.get("/", (req, res) => {
+  res.setHeader("Content-Type", "text/html")
+  res.sendFile(path.join(__dirname, 'public', 'payment.html'))
 });
 
 const countdown = () => {
@@ -53,7 +51,7 @@ const middleware = (req, res) => {
   return false;
 };
 
-app.post("/ldbpay/v1/authService/token", (req, res) => {
+router.post("/ldbpay/v1/authService/token", (req, res) => {
   const authorization = req.headers.authorization;
   console.log(auth(authorization));
   if (!auth(authorization)) {
@@ -73,7 +71,7 @@ app.post("/ldbpay/v1/authService/token", (req, res) => {
   });
 });
 
-app.post("/ldbpay/v1/payment/generateLink.service", (req, res) => {
+router.post("/ldbpay/v1/payment/generateLink.service", (req, res) => {
   if (!middleware(req, res)) {
     res.status = 403;
     return res.json({
@@ -96,7 +94,7 @@ app.post("/ldbpay/v1/payment/generateLink.service", (req, res) => {
     additional4,
   } = req.body;
   const deeplinkId = Buffer.from(`deeplink${new Date().toISOString()}`).toString("base64");
-  const link = `http://127.0.0.1:5500/public/payment.html?id=${deeplinkId}`
+  const link = `${currentUrl}/bank?id=${deeplinkId}`
   payment[`${deeplinkId}`] = {
     merchantId,
     merchantAcct,
@@ -117,7 +115,7 @@ app.post("/ldbpay/v1/payment/generateLink.service", (req, res) => {
   })
 });
 
-app.get("/confirm", async (req, res) => {
+router.get("/confirm", async (req, res) => {
   const { id } = req.query;
   console.log("🚀 ~ app.get ~ id:", id);
   // const body = req.params
@@ -127,7 +125,8 @@ app.get("/confirm", async (req, res) => {
   const data = await response.json()
   console.log("🚀 ~ app.get ~ data:", data)
   res.json({
-    message: "ok"
+    message: "ok",
+    urlBack: payment[`${id}`].urlBack,
   })
   // console.log("🚀 ~ app.get ~ response.status:", response.status)
   // res.json({
@@ -136,6 +135,19 @@ app.get("/confirm", async (req, res) => {
   // });
 });
 
-app.listen(port, () => {
-  console.log(`listen on port ${port}`);
-});
+router.get("/transaction/:id", (req, res) => {
+  const {id} = req.params
+  
+  res.json({
+    message: "",
+    transaction: payment[`${id}`]
+  })
+})
+
+// app.listen(port, () => {
+//   console.log(`listen on port ${port}`);
+// });
+
+export {
+  router
+}

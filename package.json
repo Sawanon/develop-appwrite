@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --ignore bank.js app.js",
+    "dev": "nodemon app.js",
     "dev-bank": "nodemon --ignore app.js bank.js",
     "start": "node app.js"
   },
