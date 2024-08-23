@@ -2,7 +2,7 @@ import {Router} from "express";
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-const currentUrl = "https://3fa9-110-170-209-198.ngrok-free.app"
+const currentUrl = "https://d7ba-110-170-209-198.ngrok-free.app"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const router = Router()
@@ -50,6 +50,10 @@ const middleware = (req, res) => {
   }
   return false;
 };
+
+const getBankToken = () => {
+  return "";
+}
 
 router.post("/ldbpay/v1/authService/token", (req, res) => {
   const authorization = req.headers.authorization;

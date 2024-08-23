@@ -56,10 +56,9 @@
       <a id="linkUrlBack" href="https://lottobkk.net" style="display: none"></a>
     </main>
     <script>
-      const currentUrl = "https://3fa9-110-170-209-198.ngrok-free.app";
       const id = location.search.substring(4);
       const fetchAPI = async () => {
-        let url = `${currentUrl}/bank/confirm`;
+        let url = `/bank/confirm`;
         url = `${url}${location.search}`;
         const backurl = await fetch(url);
         const data = await backurl.json();
@@ -71,13 +70,12 @@
       };
 
       const getTransactionDetail = async () => {
-        const response = await fetch(`${currentUrl}/bank/transaction/${id}`);
+        const response = await fetch(`/bank/transaction/${id}`);
         const data = await response.json();
         const transaction = data.transaction;
         const { amount } = transaction;
         console.log("🚀 ~ getTransactionDetail ~ transaction:", transaction);
         const amountElement = document.getElementById("total");
-
         amountElement.innerHTML = parseInt(amount).toLocaleString();
       };
 

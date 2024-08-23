@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url'
 import { Account, Client, Databases, ID, Query, Users } from "node-appwrite";
 import "dotenv/config";
 import express from 'express'
-import {router as bankRouter} from './bank.js'
+import {router as bankRouter, getBankToken} from './bank.js'
 import cors from 'cors'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -19,11 +19,33 @@ app.use(express.urlencoded({extended: true}))
 app.use('/bank', bankRouter)
 const databaseName = env.DATABASE_NAME;
 const SECRET_KEY = env.SECRET_KEY;
+const INVOICE_COLLECTION = `_invoice`
+const TRANSACTION_COLLECTION = `_transaction`
+const ACCUMULATE_COLLECTION = `_accumulate`
 
 const client = new Client()
   .setEndpoint(env.APPWRITE_URL)
   .setProject(env.PROJECT_ID)
   .setKey(env.API_KEY_NAJA);
+
+// middle ware
+const checkSession = async (userId, sessionId) => {
+  const users = new Users(client);
+  const sessionIdList = await users.listSessions(userId)
+  return sessionIdList.sessions.find((session) => session.$id === sessionId)
+}
+const middleware = async (req) => {
+  const authorization = req.headers.authorization.split(" ")[1]
+  const decodeAuth = Buffer.from(authorization, 'base64').toString()
+  const [sessionId, userId] = decodeAuth.split(":")
+  const session = await checkSession(userId, sessionId)
+  console.log(sessionId, userId);
+  return {
+    isPass: session !== undefined,
+    userId: userId,
+  }
+}
+// middle ware
 
 const checkExistUser = async (phone) => {
   const database = new Databases(client);
@@ -193,6 +215,119 @@ app.get("/payment", (req, res) => {
   res.send({
     message: 'test'
   })
+})
+
+app.post("/createTransaction", async (req, res) => {
+  try {
+    const token = await getBankToken(req, res)
+    console.log("🚀 ~ app.post ~ token:", token)
+
+    res.json({
+      message: 'test',
+      data: token,
+    })
+   return
+    const result = await middleware(req)
+    if(!result.isPass) {
+      res.status = 401
+      throw Error("unAuthen")
+    }
+    const body = req.body
+    const {lotteryDateStr, bankId, totalAmount, transactions} = body
+    const database = new Databases(client);
+    const invoiceDocument = await database.createDocument(
+      databaseName,
+      `${lotteryDateStr}${INVOICE_COLLECTION}`,
+      ID.unique(),
+      {
+        bankId: bankId,
+        totalAmount: totalAmount,
+        userId: result.userId,
+      },
+    )
+    const transactionIdList = []
+    for (let i = 0; i < transactions.length; i++) {
+      const transaction = transactions[i];
+      transaction.bankId = bankId
+      transaction.userId = result.userId
+      const transactionDocument = await database.createDocument(
+        databaseName,
+        `${lotteryDateStr}${TRANSACTION_COLLECTION}`,
+        ID.unique(),
+        transaction,
+      )
+      console.log("🚀 ~ app.post ~ transactionDocument:", transactionDocument)
+      transactionIdList.push(transactionDocument.$id)
+
+      // search accumulate - sawanon:20240823
+      const accumulate = await database.listDocuments(
+        databaseName,
+        `${lotteryDateStr}${ACCUMULATE_COLLECTION}`,
+        [
+          Query.equal(`lottery`, transaction.lottery),
+        ],
+      )
+      if(accumulate.total === 0){
+        // create accumulate
+        console.log("🚀 ~ app.post ~ accumulate: create")
+        await database.createDocument(
+          databaseName,
+          `${lotteryDateStr}${ACCUMULATE_COLLECTION}`,
+          ID.unique(),
+          {
+            lottery: transaction.lottery,
+            amount: transaction.price,
+            lotteryType: transaction.lotteryType,
+            lastFiveTransactions: [transactionDocument.$id],
+          }
+        )
+      }else {
+        // update accumulate
+        console.log("🚀 ~ app.post ~ accumulate: update")
+        const accumulateDocument = accumulate.documents[0]
+        const lastFiveTransactions = accumulateDocument.lastFiveTransactions
+        lastFiveTransactions.push(transactionDocument.$id)
+        await database.updateDocument(
+          databaseName,
+          `${lotteryDateStr}${ACCUMULATE_COLLECTION}`,
+          accumulateDocument.$id,
+          {
+            amount: transactionDocument.price + accumulateDocument.amount,
+            lastFiveTransactions: lastFiveTransactions,
+          }
+        )
+      }
+      console.log("🚀 ~ app.post ~ accumulate:", accumulate)
+    }
+    const invoiceDocumentUpdate = await database.updateDocument(
+      databaseName,
+      `${lotteryDateStr}${INVOICE_COLLECTION}`,
+      invoiceDocument.$id,
+      {
+        transactionId: transactionIdList,
+      }
+    )
+    console.log("🚀 ~ app.post ~ invoiceDocument:", invoiceDocument)
+    console.log("🚀 ~ app.post ~ invoiceDocumentUpdate:", invoiceDocumentUpdate)
+    
+    // final response = await dio.post(
+    //   "${AppConst.cloudfareUrl}/bank/ldbpay/v1/authService/token",
+    //   options: Options(
+    //     headers: {
+    //       "Authorization": "Basic c2F3YW5vbjoxMjM0NTY=",
+    //     },
+    //   ),
+    // );
+    res.json({
+      message: "ok",
+      data: "invoiceDocument",
+    })
+  } catch (error) {
+    console.error(error);
+    res.json({
+      message: error.message,
+    })
+  }
 })
 
 app.listen(port, () => {
