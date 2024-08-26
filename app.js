@@ -3,8 +3,9 @@ import { fileURLToPath } from 'url'
 import { Account, Client, Databases, ID, Query, Users } from "node-appwrite";
 import "dotenv/config";
 import express from 'express'
-import {router as bankRouter, getBankToken} from './bank.js'
+import {router as bankRouter} from './bank.js'
 import cors from 'cors'
+import axios from 'axios';
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const env = process.env;
@@ -35,14 +36,21 @@ const checkSession = async (userId, sessionId) => {
   return sessionIdList.sessions.find((session) => session.$id === sessionId)
 }
 const middleware = async (req) => {
-  const authorization = req.headers.authorization.split(" ")[1]
-  const decodeAuth = Buffer.from(authorization, 'base64').toString()
-  const [sessionId, userId] = decodeAuth.split(":")
-  const session = await checkSession(userId, sessionId)
-  console.log(sessionId, userId);
-  return {
-    isPass: session !== undefined,
-    userId: userId,
+  try {
+    const authorization = req.headers.authorization.split(" ")[1]
+    const decodeAuth = Buffer.from(authorization, 'base64').toString()
+    const [sessionId, userId] = decodeAuth.split(":")
+    const session = await checkSession(userId, sessionId)
+    console.log(sessionId, userId);
+    return {
+      isPass: session !== undefined,
+      userId: userId,
+    }
+  } catch (error) {
+    console.error("🚀 ~ middleware ~ error:", error)
+    return {
+      isPass: false,
+    }
   }
 }
 // middle ware
@@ -219,14 +227,29 @@ app.get("/payment", (req, res) => {
 
 app.post("/createTransaction", async (req, res) => {
   try {
-    const token = await getBankToken(req, res)
-    console.log("🚀 ~ app.post ~ token:", token)
-
-    res.json({
-      message: 'test',
-      data: token,
-    })
-   return
+    // TODO: create token for request deeplink
+    // const authorization = Buffer.from(`sawanon:123456`).toString("base64")
+    // const token = await axios({
+    //   url: `http://127.0.0.1:3000/bank/ldbpay/v1/authService/token`,
+    //   method :"POST",
+    //   headers: {
+    //     'Authorization': `Bearer ${authorization}`,
+    //     'Content-Type': 'application/json',
+    //   }
+    // })
+    // const deeplink = await axios({
+    //   url: `http://127.0.0.1:3000/bank/ldbpay/v1/payment/generateLink.service`,
+    //   method: "POST",
+    //   headers: {
+    //     'Authorization': `Bearer ${token.data.access_token}`,
+    //     'Content-Type': 'application/json',
+    //   }
+    // })
+    // res.json({
+    //   message: 'test',
+    //   data: deeplink.data,
+    // })
+    // return
     const result = await middleware(req)
     if(!result.isPass) {
       res.status = 401
