@@ -3,7 +3,7 @@ import { fileURLToPath } from 'url'
 import { Account, Client, Databases, ID, Query, Users } from "node-appwrite";
 import "dotenv/config";
 import express from 'express'
-import {router as bankRouter} from './bank.js'
+import {router as bankRouter, currentUrl} from './bank.js'
 import cors from 'cors'
 import axios from 'axios';
 const __filename = fileURLToPath(import.meta.url)
@@ -227,29 +227,6 @@ app.get("/payment", (req, res) => {
 
 app.post("/createTransaction", async (req, res) => {
   try {
-    // TODO: create token for request deeplink
-    // const authorization = Buffer.from(`sawanon:123456`).toString("base64")
-    // const token = await axios({
-    //   url: `http://127.0.0.1:3000/bank/ldbpay/v1/authService/token`,
-    //   method :"POST",
-    //   headers: {
-    //     'Authorization': `Bearer ${authorization}`,
-    //     'Content-Type': 'application/json',
-    //   }
-    // })
-    // const deeplink = await axios({
-    //   url: `http://127.0.0.1:3000/bank/ldbpay/v1/payment/generateLink.service`,
-    //   method: "POST",
-    //   headers: {
-    //     'Authorization': `Bearer ${token.data.access_token}`,
-    //     'Content-Type': 'application/json',
-    //   }
-    // })
-    // res.json({
-    //   message: 'test',
-    //   data: deeplink.data,
-    // })
-    // return
     const result = await middleware(req)
     if(!result.isPass) {
       res.status = 401
@@ -273,6 +250,7 @@ app.post("/createTransaction", async (req, res) => {
       const transaction = transactions[i];
       transaction.bankId = bankId
       transaction.userId = result.userId
+      transaction.invoiceId = invoiceDocument.$id
       const transactionDocument = await database.createDocument(
         databaseName,
         `${lotteryDateStr}${TRANSACTION_COLLECTION}`,
@@ -299,7 +277,7 @@ app.post("/createTransaction", async (req, res) => {
           ID.unique(),
           {
             lottery: transaction.lottery,
-            amount: transaction.price,
+            amount: transaction.amount,
             lotteryType: transaction.lotteryType,
             lastFiveTransactions: [transactionDocument.$id],
           }
@@ -315,7 +293,7 @@ app.post("/createTransaction", async (req, res) => {
           `${lotteryDateStr}${ACCUMULATE_COLLECTION}`,
           accumulateDocument.$id,
           {
-            amount: transactionDocument.price + accumulateDocument.amount,
+            amount: transactionDocument.amount + accumulateDocument.amount,
             lastFiveTransactions: lastFiveTransactions,
           }
         )
@@ -332,18 +310,44 @@ app.post("/createTransaction", async (req, res) => {
     )
     console.log("🚀 ~ app.post ~ invoiceDocument:", invoiceDocument)
     console.log("🚀 ~ app.post ~ invoiceDocumentUpdate:", invoiceDocumentUpdate)
+
+    const authorization = Buffer.from(`sawanon:123456`).toString("base64")
+    const token = await axios({
+      url: `http://127.0.0.1:3000/bank/ldbpay/v1/authService/token`,
+      method :"POST",
+      headers: {
+        'Authorization': `Bearer ${authorization}`,
+        'Content-Type': 'application/json',
+      }
+    })
+    const data = {
+      "merchantId": "LDB0302000002",
+      "merchantAcct": "4404FE0FDEA841C04BB68A35B0392F68",
+      "customerId": "123",
+      "referentId": invoiceDocument.$id,
+      "amount": `${totalAmount}`,
+      "remark": "ldbpay",
+      "urlBack": `https://lottobkk.net/payment?invoiceId=${invoiceDocument.$id}`,
+      "urlCallBack": `${currentUrl}/payment`,
+      "additional1": "EWRWR",
+      "additional2": "33432",
+      "additional3": "ASAA",
+      "additional4": "QQQQQQQ"
+    };
+    const deeplink = await axios({
+      url: `http://127.0.0.1:3000/bank/ldbpay/v1/payment/generateLink.service`,
+      method: "POST",
+      data: data,
+      headers: {
+        'Authorization': `Bearer ${token.data.access_token}`,
+        'Content-Type': 'application/json',
+      }
+    })
     
-    // final response = await dio.post(
-    //   "${AppConst.cloudfareUrl}/bank/ldbpay/v1/authService/token",
-    //   options: Options(
-    //     headers: {
-    //       "Authorization": "Basic c2F3YW5vbjoxMjM0NTY=",
-    //     },
-    //   ),
-    // );
     res.json({
-      message: "ok",
-      data: "invoiceDocument",
+      message: 'ok',
+      deeplink: deeplink.data,
+      invoice: invoiceDocumentUpdate,
     })
   } catch (error) {
     console.error(error);
