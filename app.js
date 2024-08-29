@@ -232,6 +232,10 @@ app.post("/createTransaction", async (req, res) => {
       res.status = 401
       throw Error("unAuthen")
     }
+    // res.json({
+    //   message: "create transaction success",
+    // })
+    // return
     const body = req.body
     const {lotteryDateStr, bankId, totalAmount, transactions} = body
     const database = new Databases(client);
