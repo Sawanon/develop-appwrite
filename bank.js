@@ -2,8 +2,8 @@ import {Router} from "express";
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-// export const currentUrl = "https://1dd9-110-170-209-198.ngrok-free.app"
-export const currentUrl = "http://demo.mylaos.life:3000"
+export const currentUrl = "https://60e3-2405-9800-b920-d13f-d8cb-7807-d2d1-1fbe.ngrok-free.app"
+// export const currentUrl = "http://demo.mylaos.life:3000"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const router = Router()
