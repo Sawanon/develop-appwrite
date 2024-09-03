@@ -14,6 +14,7 @@ const port = env.PORT || 3000;
 let userBlock = {};
 let userOTP = {};
 
+app.use(express.static('public'))
 app.use(cors());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
@@ -373,7 +374,7 @@ app.post("/createTransaction", async (req, res) => {
       amount: `${totalAmount}`,
       remark: "ldbpay",
       urlBack: `https://lottobkk.net/payment?invoiceId=${invoiceDocument.$id}`,
-      urlCallBack: `${currentUrl}/payment`,
+      urlCallBack: `https://demo.mylaos.life/api/summary/${invoiceDocument.$id}/${lotteryDateStr}`,
       additional1: "EWRWR",
       additional2: "33432",
       additional3: "ASAA",
@@ -467,6 +468,13 @@ app.post("/listLotteryCollections", async (req, res) => {
       message: error.message,
     });
   }
+})
+
+app.get("/video/1", (req, res) => {
+  console.log("🚀 ~ app.get ~ req:", req.headers);
+  // maybe block other x-requested-with: 'com.example.lottery_ck' - sawanon:20240808
+  res.setHeader("Content-Type", "text/html");
+  res.sendFile(path.join(__dirname, "public", "video1.html"));
 })
 
 app.listen(port, () => {

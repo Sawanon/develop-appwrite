@@ -122,9 +122,13 @@ router.get("/confirm", async (req, res) => {
   // const body = req.params
   const url = `${payment[`${id}`].urlCallBack}`
   console.log("🚀 ~ app.get ~ url:", url)
-  const response = await fetch(url)
-  const data = await response.json()
-  console.log("🚀 ~ app.get ~ data:", data)
+  try {
+    const response = await fetch(url)
+    const data = await response.json()
+    console.log("🚀 ~ app.get ~ data:", data)
+  } catch (error) {
+    console.error(error);
+  }
   res.json({
     message: "ok",
     urlBack: payment[`${id}`].urlBack,
