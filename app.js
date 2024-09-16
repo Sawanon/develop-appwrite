@@ -4,6 +4,7 @@ import { Account, Client, Databases, ID, Query, Users } from "node-appwrite";
 import "dotenv/config";
 import express from "express";
 import { router as bankRouter, currentUrl } from "./bank.js";
+import { router as otpRouter } from "./otp.js";
 import cors from "cors";
 import axios from "axios";
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/bank", bankRouter);
+app.use("/otp", otpRouter);
 const databaseName = env.DATABASE_NAME;
 const SECRET_KEY = env.SECRET_KEY;
 const INVOICE_COLLECTION = `_invoice`;
@@ -415,6 +417,7 @@ app.post(
     const { phoneNumber } = req.body;
     const otp = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit OTP
     if (userOTP[`${phoneNumber}`]) {
+      userOTP[`${phoneNumber}`].otp = otp;
       userOTP[`${phoneNumber}`].request += 1;
       console.log(
         "🚀 ~ app.post ~ userOTP[`${phoneNumber}`] update:",
